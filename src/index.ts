@@ -26,8 +26,9 @@ const DRONE_CONFIG_SERVER = process.env.DRONE_CONFIG_SERVER;
 const DRONE_LOG_SERVER = process.env.DRONE_LOG_SERVER;
 
 app.get("/", (req: Request, res: Response) => {
-  res.json({ message: "Drone API Gateway By Kuson Ta" });
+  res.json({ message: "Drone API Gateway By Kuson Ta @KMITL" });
 });
+
 // GET /configs/:droneId
 app.get("/configs/:droneId", async (req: Request, res: Response) => {
   try {
