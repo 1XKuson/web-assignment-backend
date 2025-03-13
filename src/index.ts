@@ -2,7 +2,10 @@ import express, { Request, Response } from "express";
 import axios from "axios";
 import cors from "cors";
 import dotenv, { config } from "dotenv";
-import { findByDroneId } from "./utils/findDroneConfigsById";
+import {
+  findByDroneId,
+  findByDroneIdInLogs,
+} from "./utils/findDroneConfigsById";
 import { copyFileSync } from "fs";
 dotenv.config();
 
@@ -23,12 +26,11 @@ app.get("/configs/:droneId", async (req: Request, res: Response) => {
     const { droneId } = req.params;
     const response = await axios.get(`${DRONE_CONFIG_SERVER}`);
     let data = response.data.data;
-    data = findByDroneId(data, droneId);    
+    data = findByDroneId(data, Number(droneId));
 
     if (data.error === "Drone config not found") {
       res.status(404).json({ error: "Drone config not found" });
-    }
-    else if (data) {
+    } else if (data) {
       const droneConfig = {
         drone_id: data.drone_id,
         drone_name: data.drone_name,
@@ -49,17 +51,16 @@ app.get("/status/:droneId", async (req: Request, res: Response) => {
     const { droneId } = req.params;
     const response = await axios.get(`${DRONE_CONFIG_SERVER}`);
     let data = response.data.data;
-    data = findByDroneId(data, droneId); 
-    
+    data = findByDroneId(data, Number(droneId));
+
     if (data.error === "Drone config not found") {
-        res.status(404).json({ error: "Drone status not found" });
-      }
-      else if (data) {
-        const status = {
-            condition: data.condition,
-          };
-        res.json(status);
-      }
+      res.status(404).json({ error: "Drone status not found" });
+    } else if (data) {
+      const status = {
+        condition: data.condition,
+      };
+      res.json(status);
+    }
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch drone status" });
   }
@@ -70,14 +71,24 @@ app.get("/logs/:droneId", async (req: Request, res: Response) => {
   try {
     const { droneId } = req.params;
     const response = await axios.get(`${DRONE_LOG_SERVER}`);
-    const logs = response.data.items.map((log: any) => ({
-      drone_id: log.drone_id,
-      drone_name: log.drone_name,
-      created: log.created,
-      country: log.country,
-      census: log.census,
-    }));
-    res.json(logs);
+    let data = response.data.items;
+    const logs = findByDroneIdInLogs(data, Number(droneId));
+
+    if (logs.length === 0) {
+      res.status(404).json({ error: "Drone config not found" });
+    } else if (logs) {
+      const droneLogs = logs.map((item) => ({
+        celsius: item.celsius,
+        collectionId: item.collectionId,
+        collectionName: item.collectionName,
+        created: item.created,
+        drone_id: item.drone_id,
+        drone_name: item.drone_name,
+        id: item.id,
+        updated: item.updated,
+      }));
+      res.json(droneLogs);
+    }
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch drone logs" });
   }
