@@ -1,24 +1,23 @@
 import express, { Request, Response } from "express";
 import axios from "axios";
 import cors from "cors";
-import dotenv, { config } from "dotenv";
+import dotenv from "dotenv";
 import {
   findByDroneId,
   findByDroneIdInLogs,
 } from "./utils/findDroneConfigsById";
-import { copyFileSync } from "fs";
+
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
 
 app.use(
-    cors({
-      origin: "*", 
-      methods: ["GET", "POST"], 
-      allowedHeaders: ["Content-Type", "Authorization"], 
-    })
-  );
+  cors({
+    origin: "*",
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 app.use(express.json());
 
 // Server 1: Drone Config Server
@@ -26,6 +25,9 @@ const DRONE_CONFIG_SERVER = process.env.DRONE_CONFIG_SERVER;
 // Server 2: Drone Log Server
 const DRONE_LOG_SERVER = process.env.DRONE_LOG_SERVER;
 
+app.get("/", (req: Request, res: Response) => {
+  res.json({ message: "Drone API Gateway By Kuson Ta" });
+});
 // GET /configs/:droneId
 app.get("/configs/:droneId", async (req: Request, res: Response) => {
   try {
@@ -36,15 +38,14 @@ app.get("/configs/:droneId", async (req: Request, res: Response) => {
 
     if (data.error === "Drone config not found") {
       res.status(404).json({ error: "Drone config not found" });
-    } else if (data) {
-      const droneConfig = {
+    } else {
+      res.json({
         drone_id: data.drone_id,
         drone_name: data.drone_name,
         light: data.light,
         country: data.country,
         weight: data.weight,
-      };
-      res.json(droneConfig);
+      });
     }
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch drone config" });
@@ -61,11 +62,8 @@ app.get("/status/:droneId", async (req: Request, res: Response) => {
 
     if (data.error === "Drone config not found") {
       res.status(404).json({ error: "Drone status not found" });
-    } else if (data) {
-      const status = {
-        condition: data.condition,
-      };
-      res.json(status);
+    } else {
+      res.json({ condition: data.condition });
     }
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch drone status" });
@@ -82,18 +80,19 @@ app.get("/logs/:droneId", async (req: Request, res: Response) => {
 
     if (logs.length === 0) {
       res.status(404).json({ error: "Drone config not found" });
-    } else if (logs) {
-      const droneLogs = logs.map((item) => ({
-        celsius: item.celsius,
-        collectionId: item.collectionId,
-        collectionName: item.collectionName,
-        created: item.created,
-        drone_id: item.drone_id,
-        drone_name: item.drone_name,
-        id: item.id,
-        updated: item.updated,
-      }));
-      res.json(droneLogs);
+    } else {
+      res.json(
+        logs.map((item) => ({
+          celsius: item.celsius,
+          collectionId: item.collectionId,
+          collectionName: item.collectionName,
+          created: item.created,
+          drone_id: item.drone_id,
+          drone_name: item.drone_name,
+          id: item.id,
+          updated: item.updated,
+        }))
+      );
     }
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch drone logs" });
@@ -116,6 +115,5 @@ app.post("/logs", async (req: Request, res: Response) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+
+export default app;

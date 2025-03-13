@@ -12,10 +12,11 @@
     "express": "^4.21.2"
   },
   "scripts": {
-    "start": "node dist/index.js",
-    "build": "tsc",
-    "dev": "nodemon src/index.ts"
-  },
+  "dev": "vercel dev",
+  "build": "tsc",
+  "start": "node dist/api/index.js",
+  "deploy": "vercel --prod"
+},
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
