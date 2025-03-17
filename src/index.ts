@@ -103,18 +103,21 @@ app.get("/logs/:droneId", async (req: Request, res: Response) => {
 // POST /logs
 app.post("/logs", async (req: Request, res: Response) => {
   try {
-    const { drone_id, drone_name, country, census } = req.body;
-    const response = await axios.post(`${DRONE_LOG_SERVER}`, {
-      drone_id,
-      drone_name,
-      country,
-      census,
-    });
+    const { drone_id, drone_name, country, celsius } = req.body;
+    const response = await axios.post(
+      `${DRONE_LOG_SERVER}`,
+      {
+        drone_id,
+        drone_name,
+        country,
+        celsius,
+      },
+      { headers: { Authorization: `Bearer ${process.env.API_TOKEN}` } }
+    );
     res.json(response.data);
   } catch (error) {
     res.status(500).json({ error: "Failed to create log" });
   }
 });
-
 
 export default app;
